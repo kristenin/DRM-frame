@@ -12,17 +12,23 @@ class BookInfoViewSet(ModelViewSet):
     serializer_class = BookInfoSerializer
     queryset = BookInfo.objects.all()
 
+    lookup_value_regex = '\d+'
+
+    @action(methods=['get'], detail=False)
     def latest(self, request):
         book = BookInfo.objects.latest('id')
-        serializer = self.get_serializer(book)
+        serializer =self.get_serializer(book)
         return Response(serializer.data)
 
+    @action(methods=['put'], detail=True)
     def read(self, request, pk):
         book = self.get_object()
         bread = request.data.get('bread')
         if not bread:
             return Response({'code':'缺少bread参数'}, status=status.HTTP_400_BAD_REQUEST)
+
         book.bread = bread
         book.save()
+
         serializer = self.get_serializer(book)
         return Response(serializer.data)

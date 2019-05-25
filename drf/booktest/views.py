@@ -1,95 +1,48 @@
-from django.http import JsonResponse, HttpResponse
-from django.views import View
+from rest_framework import status
+from rest_framework.viewsets import ViewSetMixin,ViewSet
+from rest_framework.response import Response
 
+from django.http import Http404
 from booktest.models import BookInfo
 from booktest.serializers import BookInfoSerializer
-import json
 
-class BookListView(View):
-    def get(self, request):
+class BookInfoViewSet(ViewSet):
+    def list(self, request):
         books = BookInfo.objects.all()
-        # book_list = []
-        # for book in books:
-        #     book_list.append({
-        #         'id':book.id,
-        #         'btitle':book.btitle,
-        #         'bpub_date':book.bpub_date,
-        #         'bread':book.bread,
-        #         'bcomment':book.bcomment
-        #     })
         serializer = BookInfoSerializer(books, many=True)
-        return JsonResponse(serializer.data, safe=False)
-    def post(self, request):
-        req_data = request.body
-        json_str = req_data.decode()
-        req_dict = json.loads(json_str)
+        return Response(serializer.data)
 
-        # book = BookInfo.objects.create(
-        #     btitle=req_dict.get('btitle'),
-        #     bpub_date = req_dict.get('bpub_date')
-        # )
-        #
-        # return JsonResponse({
-        #     'id': book.id,
-        #     'btitle': book.btitle,
-        #     'bpub_date': book.bpub_date,
-        #     'bread': book.bread,
-        #     'bcomment': book.bcomment
-        # }, status=201)
-
-        serializer = BookInfoSerializer(data=req_dict)
+    def create(self, request):
+        serializer = BookInfoSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         serializer.save()
-        return JsonResponse(serializer.data, status=201)
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
 
-class BookDetailView(View):
-    def get(self, request,pk):
+    def retrieve(self, request, pk):
         try:
             book = BookInfo.objects.get(pk=pk)
         except BookInfo.DoesNotExist:
-            return HttpResponse(status=404)
+            raise Http404
 
-        # return JsonResponse({
-        #     'id': book.id,
-        #     'btitle': book.btitle,
-        #     'bpub_date': book.bpub_date,
-        #     'bread': book.bread,
-        #     'bcomment': book.bcomment
-        # })
         serializer = BookInfoSerializer(book)
-        return JsonResponse(serializer.data)
-    def put(self, request, pk):
+        return Response(serializer.data)
+    def update(self, request, pk):
         try:
             book = BookInfo.objects.get(pk=pk)
         except BookInfo.DoesNotExist:
-            return HttpResponse(status=404)
+            raise Http404
 
-        req_data = request.body
-        json_str = req_data.decode()
-        req_dict = json.loads(json_str)
-
-        # book.btitle = req_dict.get('btitle')
-        # book.bpub_date = req_dict.get('bpub_date')
-        # book.save()
-        #
-        # return JsonResponse({
-        #     'id': book.id,
-        #     'btitle': book.btitle,
-        #     'bpub_date': book.bpub_date,
-        #     'bread': book.bread,
-        #     'bcomment': book.bcomment
-        # })
-        serializer = BookInfoSerializer(data=req_dict)
+        serializer = BookInfoSerializer(book, data=request.data)
         serializer.is_valid(raise_exception=True)
         serializer.save()
-        return JsonResponse(serializer.data)
+        return Response(self, request, pk)
 
-    def delete(self, request, pk):
+    def destroy(self, request, pk):
         try:
             book = BookInfo.objects.get(pk=pk)
         except BookInfo.DoesNotExist:
-            return HttpResponse(status=404)
+            raise Http404
 
         book.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
-        return HttpResponse(status=204)

@@ -11,7 +11,6 @@ class HeroInfoSerializer(serializers.Serializer):
     hname = serializers.CharField(label='英雄名称', max_length=20)
     hgender = serializers.ChoiceField(label='性别', choices=GENDER_CHOICES, default=0)
     hcomment = serializers.CharField(label='评论', required=False)
-
     hbook = serializers.PrimaryKeyRelatedField(label='图书', read_only=True)
 
 

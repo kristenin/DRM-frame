@@ -1,48 +1,13 @@
 from rest_framework import status
-from rest_framework.viewsets import ViewSetMixin,ViewSet
+from rest_framework import mixins
+from rest_framework.viewsets import ViewSetMixin,ViewSet,GenericViewSet,ModelViewSet
 from rest_framework.response import Response
 
 from django.http import Http404
 from booktest.models import BookInfo
 from booktest.serializers import BookInfoSerializer
 
-class BookInfoViewSet(ViewSet):
-    def list(self, request):
-        books = BookInfo.objects.all()
-        serializer = BookInfoSerializer(books, many=True)
-        return Response(serializer.data)
-
-    def create(self, request):
-        serializer = BookInfoSerializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        serializer.save()
-        return Response(serializer.data, status=status.HTTP_201_CREATED)
-
-    def retrieve(self, request, pk):
-        try:
-            book = BookInfo.objects.get(pk=pk)
-        except BookInfo.DoesNotExist:
-            raise Http404
-
-        serializer = BookInfoSerializer(book)
-        return Response(serializer.data)
-    def update(self, request, pk):
-        try:
-            book = BookInfo.objects.get(pk=pk)
-        except BookInfo.DoesNotExist:
-            raise Http404
-
-        serializer = BookInfoSerializer(book, data=request.data)
-        serializer.is_valid(raise_exception=True)
-        serializer.save()
-        return Response(self, request, pk)
-
-    def destroy(self, request, pk):
-        try:
-            book = BookInfo.objects.get(pk=pk)
-        except BookInfo.DoesNotExist:
-            raise Http404
-
-        book.delete()
-        return Response(status=status.HTTP_204_NO_CONTENT)
+class BookInfoViewSet(ModelViewSet):
+    serializer_class = BookInfoSerializer
+    queryset = BookInfo.objects.all()
 
